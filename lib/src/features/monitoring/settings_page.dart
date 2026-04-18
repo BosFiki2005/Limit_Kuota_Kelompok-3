@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:limit_kuota/src/core/theme/theme_provider.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -8,56 +10,63 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  double _tempLimit = 1.0;
+  bool isAlertOn = true;
+  double limitData = 1; // GB
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+
     return Scaffold(
-      appBar: AppBar(title: const Text("Pengaturan")),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text("Batas Peringatan Data", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 10),
-            const Text("Tentukan kapan aplikasi harus memberi peringatan penggunaan data."),
-            const SizedBox(height: 40),
-            Center(
-              child: Column(
-                children: [
-                  Text("${_tempLimit.toStringAsFixed(1)} GB", 
-                    style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: Colors.blue)),
-                  const Text("Batas Harian", style: TextStyle(color: Colors.grey)),
-                ],
-              ),
+      appBar: AppBar(
+        title: const Text("Settings"),
+      ),
+      body: ListView(
+        children: [
+          // 🌙 DARK MODE
+          ListTile(
+            title: const Text("Dark Mode"),
+            trailing: Switch(
+              value: themeProvider.isDark,
+              onChanged: (value) {
+                themeProvider.toggleTheme(value);
+              },
             ),
-            Slider(
-              value: _tempLimit,
-              min: 0.1,
-              max: 5.0,
-              divisions: 49,
-              onChanged: (val) => setState(() => _tempLimit = val),
+          ),
+
+          const Divider(),
+
+          // 📶 PERINGATAN DATA
+          ListTile(
+            title: const Text("Peringatan Data"),
+            trailing: Switch(
+              value: isAlertOn,
+              onChanged: (value) {
+                setState(() {
+                  isAlertOn = value;
+                });
+              },
             ),
-            const Spacer(),
-            SizedBox(
-              width: double.infinity,
-              height: 55,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                ),
-                onPressed: () {
-                  // Mengirim kembali nilai limit ke halaman sebelumnya
-                  Navigator.pop(context, _tempLimit);
+          ),
+
+          // 🔢 BATAS KUOTA
+          if (isAlertOn)
+            ListTile(
+              title: const Text("Batas Kuota"),
+              subtitle: Slider(
+                value: limitData,
+                min: 1,
+                max: 10,
+                divisions: 9,
+                label: "${limitData.toInt()} GB",
+                onChanged: (value) {
+                  setState(() {
+                    limitData = value;
+                  });
                 },
-                child: const Text("Simpan Perubahan", style: TextStyle(fontSize: 16)),
               ),
             ),
-          ],
-        ),
+        ],
       ),
     );
   }
